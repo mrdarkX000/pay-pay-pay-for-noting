@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Roblox Account Lookup</title>
+<style>
+:root{--bg:#080a10;--card:#111520;--line:#252b3a;--text:#f5f7fb;--muted:#98a2b3;--accent:#00a2ff;--accent2:#7c3aed;--ok:#22c55e;--danger:#ef4444}*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at 15% 10%,#10243b 0,#080a10 35%),radial-gradient(circle at 85% 90%,#241337 0,#080a10 35%);color:var(--text)}.wrap{width:min(1050px,92%);margin:auto;padding:48px 0}.hero{text-align:center;margin-bottom:28px}.logo{width:64px;height:64px;margin:auto;border-radius:18px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));font-weight:900;font-size:25px;box-shadow:0 15px 45px #0008}.hero h1{font-size:clamp(30px,5vw,52px);margin:18px 0 8px}.hero p{color:var(--muted);margin:0}.search{margin:28px auto;display:flex;gap:10px;background:#0d111a;border:1px solid var(--line);padding:10px;border-radius:18px;max-width:760px;box-shadow:0 20px 60px #0005}.search input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#fff;padding:13px 15px;font-size:17px;direction:ltr}.btn{border:0;border-radius:12px;padding:0 22px;background:linear-gradient(135deg,var(--accent),#2563eb);color:white;font-weight:800;font-size:15px;cursor:pointer}.btn:disabled{opacity:.55;cursor:not-allowed}.status{text-align:center;color:var(--muted);min-height:24px;margin:12px}.error{color:#fca5a5}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:linear-gradient(180deg,#141925,#0f131c);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 35px #0004}.profile{grid-column:1/-1;display:flex;align-items:center;gap:20px}.avatar{width:110px;height:110px;border-radius:20px;object-fit:cover;background:#202633;border:1px solid var(--line)}.name{font-size:28px;font-weight:900}.handle{color:var(--muted);direction:ltr;text-align:right}.badge{display:inline-block;margin-top:9px;padding:5px 9px;border-radius:99px;background:#172033;color:#9bdcff;font-size:12px}.label{color:var(--muted);font-size:13px}.value{font-size:20px;font-weight:800;margin-top:7px;word-break:break-word}.desc{white-space:pre-wrap;line-height:1.7;color:#d6dae3}.links{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}.links a{color:#b9e8ff;text-decoration:none;border:1px solid #294157;padding:8px 11px;border-radius:10px;background:#101b27}.hidden{display:none}footer{text-align:center;color:#697386;font-size:12px;margin-top:30px;line-height:1.7}@media(max-width:720px){.grid{grid-template-columns:1fr}.profile{grid-column:auto;flex-direction:column;text-align:center}.search{flex-direction:column}.btn{height:48px}.handle{text-align:center}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="hero"><div class="logo">R</div><h1>Roblox Account Lookup</h1><p>اكتب اسم مستخدم Roblox لعرض المعلومات العامة المتاحة فقط.</p></section>
+<form class="search" id="form"><input id="username" autocomplete="off" placeholder="Username — مثال: Builderman"><button class="btn" id="go">بحث</button></form>
+<div class="status" id="status"></div>
+<section class="grid hidden" id="result">
+  <div class="card profile"><img class="avatar" id="avatar" alt="Avatar"><div><div class="name" id="displayName">—</div><div class="handle" id="handle">—</div><span class="badge" id="state">—</span></div></div>
+  <div class="card"><div class="label">User ID</div><div class="value" id="id">—</div></div>
+  <div class="card"><div class="label">تاريخ إنشاء الحساب</div><div class="value" id="created">—</div></div>
+  <div class="card"><div class="label">الحظر</div><div class="value" id="banned">—</div></div>
+  <div class="card"><div class="label">أصدقاء</div><div class="value" id="friends">—</div></div>
+  <div class="card"><div class="label">متابعون</div><div class="value" id="followers">—</div></div>
+  <div class="card"><div class="label">يتابع</div><div class="value" id="following">—</div></div>
+  <div class="card" style="grid-column:1/-1"><div class="label">الوصف</div><div class="desc" id="desc">لا يوجد وصف.</div><div class="links"><a id="profileLink" target="_blank" rel="noopener">فتح الملف في Roblox ↗</a></div></div>
+</section>
+<footer>يعرض هذا الموقع بيانات Roblox العامة فقط. لا يطلب كلمة مرور أو Cookie أو رمز تحقق، ولا يستطيع كشف المعلومات الخاصة أو كلمات المرور أو البريد المخفي.</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);const form=$('form'),input=$('username'),status=$('status'),result=$('result'),go=$('go');
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+async function json(url,opt){const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+async function lookup(name){
+ const found=await json('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usernames:[name],excludeBannedUsers:false})});
+ if(!found.data?.length)throw new Error('لم يتم العثور على هذا المستخدم.');
+ const u=found.data[0],id=u.id;
+ const [profile,thumb,friends,followers,following]=await Promise.all([
+  json(`https://users.roblox.com/v1/users/${id}`),
+  json(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${id}&size=150x150&format=Png&isCircular=false`),
+  json(`https://friends.roblox.com/v1/users/${id}/friends/count`),
+  json(`https://friends.roblox.com/v1/users/${id}/followers/count`),
+  json(`https://friends.roblox.com/v1/users/${id}/followings/count`)
+ ]);
+ $('avatar').src=thumb.data?.[0]?.imageUrl||'';$('displayName').textContent=profile.displayName||u.name;$('handle').textContent='@'+profile.name;$('id').textContent=id;
+ $('created').textContent=new Date(profile.created).toLocaleString('ar-DZ',{dateStyle:'medium'});$('banned').textContent=profile.isBanned?'نعم':'لا';$('friends').textContent=friends.count??'—';$('followers').textContent=followers.count??'—';$('following').textContent=following.count??'—';$('desc').textContent=profile.description||'لا يوجد وصف.';$('state').textContent=profile.isBanned?'Banned':'Public account';$('profileLink').href=`https://www.roblox.com/users/${id}/profile`;result.classList.remove('hidden');
+}
+form.addEventListener('submit',async e=>{e.preventDefault();const name=input.value.trim();if(!name)return;go.disabled=true;result.classList.add('hidden');status.className='status';status.textContent='جاري البحث…';try{await lookup(name);status.textContent='تم العثور على الحساب.'}catch(err){status.className='status error';status.textContent=err.message||'حدث خطأ أثناء البحث.'}finally{go.disabled=false}});
+</script>
+</body>
+</html>
