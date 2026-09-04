@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>XERO Roblox Lookup</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,Arial,sans-serif;background:#070a12;color:#eef2ff;min-height:100vh}body:before{content:"";position:fixed;inset:-30%;background:radial-gradient(circle at 20% 20%,#4f46e533,transparent 30%),radial-gradient(circle at 80% 30%,#06b6d433,transparent 28%);filter:blur(40px);z-index:-1}.wrap{max-width:1100px;margin:auto;padding:32px 18px}.hero{text-align:center;padding:35px 10px}.logo{width:68px;height:68px;margin:auto;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg,#6366f1,#06b6d4);font-size:32px;font-weight:900;box-shadow:0 15px 50px #06b6d433}.hero h1{font-size:42px;margin:18px 0 8px}.hero p{color:#9ca8c7;margin:0}.search{display:flex;gap:10px;max-width:760px;margin:28px auto}.search input{flex:1;background:#101522;border:1px solid #293247;color:white;border-radius:15px;padding:17px 18px;font-size:17px;outline:none}.search input:focus{border-color:#6366f1}.search button{border:0;border-radius:15px;padding:0 27px;font-size:17px;font-weight:800;color:white;background:linear-gradient(135deg,#6366f1,#06b6d4);cursor:pointer}.status{text-align:center;color:#8e9ab8;min-height:25px}.card{background:#0d121eaa;border:1px solid #202b40;border-radius:24px;padding:24px;margin-top:22px;backdrop-filter:blur(18px);box-shadow:0 20px 70px #0005}.profile{display:grid;grid-template-columns:150px 1fr;gap:25px;align-items:center}.avatar{width:150px;height:150px;border-radius:28px;object-fit:cover;background:#151b2a}.name{font-size:30px;font-weight:900}.username{color:#8794b4;margin-top:5px}.bio{color:#c5cee2;line-height:1.7;margin:18px 0}.actions{display:flex;gap:10px;flex-wrap:wrap}.actions a,.actions button{padding:11px 15px;border-radius:12px;border:1px solid #2b3850;background:#151c2c;color:white;text-decoration:none;cursor:pointer}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:22px}.stat{background:#111827;border:1px solid #222e43;border-radius:16px;padding:18px}.stat b{display:block;font-size:24px}.stat span{color:#7f8ba8;font-size:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.section h3{margin-top:0}.row{display:flex;justify-content:space-between;border-bottom:1px solid #202a3c;padding:12px 0;color:#aeb8ce}.row strong{color:#f4f7ff}.hidden{display:none}.error{color:#fb7185}.loader{display:inline-block;width:16px;height:16px;border:2px solid #56627d;border-top-color:white;border-radius:50%;animation:r .7s linear infinite;vertical-align:middle}@keyframes r{to{transform:rotate(360deg)}}@media(max-width:700px){.hero h1{font-size:32px}.search{flex-direction:column}.search button{padding:15px}.profile{grid-template-columns:1fr;text-align:center}.avatar{margin:auto}.actions{justify-content:center}.stats{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+</style></head>
+<body><main class="wrap">
+<section class="hero"><div class="logo">X</div><h1>Roblox Account Lookup</h1><p>كشف المعلومات العامة لحساب Roblox بالـ Username فقط</p></section>
+<div class="search"><input id="username" placeholder="اكتب Username مثل Builderman" autocomplete="off"><button id="go">بحث 🔎</button></div><div id="status" class="status"></div>
+<section id="result" class="card hidden"></section>
+</main>
+<script>
+const $=s=>document.querySelector(s), status=$('#status'), result=$('#result');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(url,opt={}){const r=await fetch(url,opt);if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+async function lookup(){let u=$('#username').value.trim();if(!u)return;result.classList.add('hidden');status.innerHTML='<span class="loader"></span> جاري البحث...';
+try{
+ const users=await api('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usernames:[u],excludeBannedUsers:false})});
+ if(!users.data?.length)throw new Error('لم يتم العثور على المستخدم');
+ const x=users.data[0], id=x.id;
+ const [user,thumb,followers,following,friends,badges]=await Promise.allSettled([
+  api('https://users.roblox.com/v1/users/'+id),
+  api('https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds='+id+'&size=420x420&format=Png&isCircular=false'),
+  api('https://friends.roblox.com/v1/users/'+id+'/followers/count'),
+  api('https://friends.roblox.com/v1/users/'+id+'/followings/count'),
+  api('https://friends.roblox.com/v1/users/'+id+'/friends/count'),
+  api('https://badges.roblox.com/v1/users/'+id+'/badges?limit=10&sortOrder=Desc')
+ ]);
+ const get=q=>q.status==='fulfilled'?q.value:null, d=get(user)||{}, t=get(thumb), av=t?.data?.[0]?.imageUrl||'';
+ const fmt=n=>n==null?'—':Number(n).toLocaleString('en-US');
+ const created=d.created?new Date(d.created).toLocaleDateString('ar-DZ',{year:'numeric',month:'long',day:'numeric'}):'—';
+ const banned=d.isBanned?'نعم':'لا';
+ result.innerHTML=`<div class="profile"><img class="avatar" src="${esc(av)}" alt="Avatar"><div><div class="name">${esc(d.displayName||x.name)}</div><div class="username">@${esc(d.name||x.name)} · ID ${esc(id)}</div><div class="bio">${esc(d.description||'لا يوجد وصف عام.')}</div><div class="actions"><a href="https://www.roblox.com/users/${id}/profile" target="_blank" rel="noopener">فتح البروفايل ↗</a><button onclick="navigator.clipboard?.writeText('${id}')">نسخ ID</button></div></div></div>
+ <div class="stats"><div class="stat"><b>${fmt(get(friends)?.count)}</b><span>الأصدقاء</span></div><div class="stat"><b>${fmt(get(followers)?.count)}</b><span>المتابعون</span></div><div class="stat"><b>${fmt(get(following)?.count)}</b><span>يتابع</span></div><div class="stat"><b>${fmt(get(badges)?.data?.length)}</b><span>Badges ظاهرة</span></div></div>
+ <div class="grid" style="margin-top:18px"><div class="section"><h3>معلومات الحساب</h3><div class="row"><span>تاريخ الإنشاء</span><strong>${esc(created)}</strong></div><div class="row"><span>الحساب محظور</span><strong>${banned}</strong></div><div class="row"><span>Username</span><strong>${esc(d.name||x.name)}</strong></div><div class="row"><span>Display Name</span><strong>${esc(d.displayName||x.name)}</strong></div></div><div class="section"><h3>آخر Badges الظاهرة</h3>${(get(badges)?.data||[]).slice(0,10).map(b=>`<div class="row"><span>${esc(b.name)}</span><strong>✓</strong></div>`).join('')||'<p style="color:#7f8ba8">لا توجد بيانات متاحة.</p>'}</div></div>`;
+ result.classList.remove('hidden');status.textContent='تم العثور على الحساب ✓';
+}catch(e){status.innerHTML='<span class="error">'+esc(e.message||'حدث خطأ')+'</span>'}}
+$('#go').onclick=lookup;$('#username').addEventListener('keydown',e=>{if(e.key==='Enter')lookup()});
+</script></body></html>
